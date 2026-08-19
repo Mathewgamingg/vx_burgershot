@@ -102,11 +102,11 @@ Uprav si je v `config/locations.lua` – např. přes `/coords` nebo podobný n�
 ### Výběr metody interakce
 U každého bodu v `locations.lua` napíšeš **jednu** hodnotu:
 ```lua
-interact = 'target',   -- 'target' | 'textui' | '3dtext'
+interact = 'target',   -- 'target' | 'textui' | 'text3d'
 ```
 - `'target'` – ox_target (koukni na bod)
 - `'textui'` – vlastní textUI panel s klávesou (ukáže se když jsi blízko)
-- `'3dtext'` – 3D text nad bodem s klávesou (ukáže se když jsi blízko)
+- `'text3d'` – 3D text nad bodem s klávesou (ukáže se když jsi blízko)
 
 Globálně jednotlivé metody můžeš zapnout/vypnout v `Config.Interaction`.
 

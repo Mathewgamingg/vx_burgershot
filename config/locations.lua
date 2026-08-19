@@ -4,14 +4,14 @@
 --  Kazdy bod ma:
 --    coords   = vector3(...)         -- pozice
 --    heading  = float                -- natoceni (pro text3d popisek / vehicle spawn)
---    interact = 'target'             -- JEDNA z moznosti: 'target' | 'textui' | '3dtext'
+--    interact = 'target'             -- JEDNA z moznosti: 'target' | 'textui' | 'text3d'
 --    label    = 'Text v panelu'
 --    icon     = 'fa-...'             -- ikonka pro ox_target/textui
 --
 --  interact - staci napsat jednu hodnotu:
 --    'target'  = ox_target (koukni na bod)
 --    'textui'  = vlastni textUI panel s klavesou (ukaze se kdyz jsi blizko)
---    '3dtext'  = 3D text nad bodem s klavesou (ukaze se kdyz jsi blizko)
+--    'text3d'  = 3D text nad bodem s klavesou (ukaze se kdyz jsi blizko)
 --
 --  Souradnice jsou pro klasicky Burger Shot (Vespucci) - klidne si uprav
 --  pres /coords nebo podobny nastroj primo v GTA.
@@ -56,7 +56,7 @@ Config.Locations = {
             coords   = vector3(-1200.83, -898.10, 13.99),
             heading  = 35.0,
             station  = 'fryer',      -- hranolky, smazene
-            interact = '3dtext',
+            interact = 'text3d',
             label    = 'Frytovaci kos',
             icon     = 'fa-solid fa-bacon',
         },
@@ -120,7 +120,7 @@ Config.Locations = {
     supplier = {
         ped      = 'mp_m_shopkeep_01',
         coords   = vector4(-89.60, 6494.30, 30.49, 45.0), -- sever mapy (Paleto oblast)
-        interact = '3dtext',
+        interact = 'text3d',
         label    = 'Dodavatel surovin',
         icon     = 'fa-solid fa-truck',
         blip     = { sprite = 478, color = 5, label = 'Dodavatel surovin' },

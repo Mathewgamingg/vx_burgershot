@@ -47,6 +47,17 @@ Config.Locale         = 'cs'
 Config.Debug          = false
 
 -----------------------------------------------------------------------
+--  KONSTANTY METOD INTERAKCE
+--  V locations.lua pouzivej tyhle konstanty misto psani stringu,
+--  at se nestane preklep. Napr.:  interact = Config.Interact.TARGET
+-----------------------------------------------------------------------
+Config.Interact = {
+    TARGET = 'target',   -- ox_target (koukni na bod)
+    TEXTUI = 'textui',   -- vlastni textUI panel s klavesou (kdyz jsi blizko)
+    TEXT3D = 'text3d',   -- 3D text nad bodem s klavesou (kdyz jsi blizko)
+}
+
+-----------------------------------------------------------------------
 --  INTERAKCE - 3 moznosti zobrazeni bodu
 --  Kazdy bod v locations.lua ma pole `interact`, kde si vybras metodu.
 --  Globalne tady zapinas/vypinas jestli je dana metoda vubec povolena.

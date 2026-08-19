@@ -100,11 +100,15 @@ Souřadnice jsou orientační (Burger Shot ve Vespucci + dodavatel na severu).
 Uprav si je v `config/locations.lua` – např. přes `/coords` nebo podobný nástroj v GTA.
 
 ### Výběr metody interakce
-V každém bodě v `locations.lua`:
+U každého bodu v `locations.lua` napíšeš **jednu** hodnotu:
 ```lua
-interact = { 'target', 'textui' },  -- klidně víc naráz
+interact = 'target',   -- 'target' | 'textui' | '3dtext'
 ```
-Globálně jednotlivé metody zapínáš/vypínáš v `Config.Interaction`.
+- `'target'` – ox_target (koukni na bod)
+- `'textui'` – vlastní textUI panel s klávesou (ukáže se když jsi blízko)
+- `'3dtext'` – 3D text nad bodem s klávesou (ukáže se když jsi blízko)
+
+Globálně jednotlivé metody můžeš zapnout/vypnout v `Config.Interaction`.
 
 ### Obrázky jídel
 Výchozí nastavení **tahá obrázky přímo z `ox_inventory`** (jeho `web/images/<item>.png`),

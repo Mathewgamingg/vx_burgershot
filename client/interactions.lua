@@ -17,19 +17,33 @@ Interactions = {}
 local proximityPoints = {}   -- body co potrebuji text3d nebo textui
 local currentTextUI = nil    -- ktery textui je prave zobrazeny
 
-local function has(list, method)
-    for _, m in ipairs(list) do if m == method then return true end end
-    return false
+-- Prijima interact jako STRING ('target' | 'textui' | '3dtext')
+-- nebo (zpetne) jako tabulku vice hodnot. Vraci set { target=true, ... }.
+local function normalizeMethods(interact)
+    local out = {}
+    local function add(m)
+        m = tostring(m):lower()
+        if m == '3dtext' or m == '3d' then m = 'text3d' end
+        out[m] = true
+    end
+    if type(interact) == 'string' then
+        add(interact)
+    elseif type(interact) == 'table' then
+        for _, m in ipairs(interact) do add(m) end
+    else
+        add('target')
+    end
+    return out
 end
 
 -----------------------------------------------------------------------
 -- Registrace bodu
 -----------------------------------------------------------------------
 function Interactions.Register(point, onSelect)
-    local methods = point.interact or { 'target' }
+    local methods = normalizeMethods(point.interact)
 
     -- TARGET (ox_target) --------------------------------------------
-    if has(methods, 'target') and Config.Interaction.target and GetResourceState('ox_target') == 'started' then
+    if methods.target and Config.Interaction.target and GetResourceState('ox_target') == 'started' then
         exports.ox_target:addSphereZone({
             coords = point.coords,
             radius = 1.2,
@@ -50,8 +64,8 @@ function Interactions.Register(point, onSelect)
     end
 
     -- TEXT3D / TEXTUI (proximity) -----------------------------------
-    local wantsText3d = has(methods, 'text3d') and Config.Interaction.text3d
-    local wantsTextUI = has(methods, 'textui') and Config.Interaction.textui
+    local wantsText3d = methods.text3d and Config.Interaction.text3d
+    local wantsTextUI = methods.textui and Config.Interaction.textui
     if wantsText3d or wantsTextUI then
         proximityPoints[#proximityPoints + 1] = {
             coords   = point.coords,

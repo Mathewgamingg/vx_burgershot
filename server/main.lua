@@ -50,11 +50,10 @@ RegisterNetEvent('vx_burgershot:withdrawSociety', function(amount)
     end
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return end
-    if Bridge.GetSociety(Config.Register.societyAccount) < amount then
+    if not Bridge.RemoveSociety(Config.Register.societyAccount, amount) then
         Bridge.Notify(src, 'Na firemnim ucte neni dost penez', 'error')
         return
     end
-    Bridge.AddSociety(Config.Register.societyAccount, -amount)
     Bridge.AddMoney(src, 'cash', amount)
     Bridge.Notify(src, ('Vybral jsi $%s z firemniho uctu'):format(amount), 'success')
 end)

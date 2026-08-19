@@ -22,6 +22,7 @@ shared_scripts {
 client_scripts {
     'bridge/client.lua',
     'client/utils.lua',
+    'client/textui.lua',
     'client/interactions.lua',
     'client/crafting.lua',
     'client/drinks.lua',
@@ -39,8 +40,13 @@ server_scripts {
     'server/main.lua',
 }
 
+ui_page 'html/ui.html'
+
 files {
     'locales/*.json',
+    'html/ui.html',
+    'html/style.css',
+    'html/script.js',
     'html/images/*.png',
 }
 

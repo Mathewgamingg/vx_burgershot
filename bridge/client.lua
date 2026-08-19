@@ -1,21 +1,14 @@
 -----------------------------------------------------------------------
---  BRIDGE - CLIENT
+--  BRIDGE - CLIENT (multi-framework)
 --
---  Toto je JEDINE misto, ktere musis upravit az napojis svuj framework
---  (ESX / QBCore / Qbox / vlastni bridge).
---
---  Vsechny ostatni soubory volaji pouze funkce z tabulky `Bridge`.
---  Ted je to STANDALONE - funguje samo, ale job/penize jsou jen simulovane
---  pres server callbacky. Az budes mit bridge, prepis vnitrek techto funkci.
+--  Job hrace si klient bere ze serveru (callback 'vx_burgershot:getJob'),
+--  aby byl klient nezavisly na frameworku. Pri zmene jobu (FW event) si
+--  job jen znovu vyzada. Notifikace se snazi pouzit FW/ox_lib, jinak nativni.
 -----------------------------------------------------------------------
 
 Bridge = {}
 
--- Lokalni cache dat hrace (job apod.)
-local playerData = {
-    job = { name = 'unemployed', grade = 0 },
-    loaded = false,
-}
+local playerData = { job = { name = 'unemployed', grade = 0 }, loaded = false }
 
 -----------------------------------------------------------------------
 -- NOTIFIKACE
@@ -24,8 +17,15 @@ function Bridge.Notify(msg, type, title)
     type = type or 'inform'
     if Config.UseOxLibNotify and lib and lib.notify then
         lib.notify({ title = title or 'Burger Shot', description = msg, type = type })
+        return
+    end
+    -- framework fallbacky
+    if GetResourceState('es_extended') == 'started' then
+        TriggerEvent('esx:showNotification', msg)
+    elseif GetResourceState('qb-core') == 'started' or GetResourceState('qbx_core') == 'started' then
+        local qbType = (type == 'inform') and 'primary' or type
+        TriggerEvent('QBCore:Notify', msg, qbType)
     else
-        -- nativni fallback
         SetNotificationTextEntry('STRING')
         AddTextComponentSubstringPlayerName(msg)
         DrawNotification(false, true)
@@ -33,12 +33,9 @@ function Bridge.Notify(msg, type, title)
 end
 
 -----------------------------------------------------------------------
--- JOB / DATA HRACE
---   -> Pri bridgi tady vrat realny job z frameworku.
+-- JOB
 -----------------------------------------------------------------------
-function Bridge.GetJob()
-    return playerData.job
-end
+function Bridge.GetJob() return playerData.job end
 
 function Bridge.HasJob()
     if not Config.RequireJob then return true end
@@ -50,59 +47,55 @@ function Bridge.IsBoss()
         and (playerData.job.grade or 0) >= Config.MinGradeBoss
 end
 
--- STANDALONE: job si natahneme ze serveru (server rozhodne dle DB/whitelistu).
--- Pri bridgi tuhle cast smaz a napln playerData z frameworku (napr. ESX event).
-CreateThread(function()
-    while not (lib and lib.callback) do Wait(100) end
+local function refreshJob()
+    if not (lib and lib.callback) then return end
     local job = lib.callback.await('vx_burgershot:getJob', false)
     if job then playerData.job = job end
     playerData.loaded = true
+end
+
+-- pocatecni nacteni
+CreateThread(function()
+    while not (lib and lib.callback) do Wait(100) end
+    Wait(600) -- pockej az server detekuje framework
+    refreshJob()
 end)
 
--- Umoznuje serveru pushnout aktualizaci jobu (napr. po povyseni)
+-- server muze job pushnout primo
 RegisterNetEvent('vx_burgershot:setJob', function(job)
     if job then playerData.job = job end
 end)
 
---[[  PRIKLAD NAPOJENI NA ESX:
-    ESX = exports['es_extended']:getSharedObject()
-    RegisterNetEvent('esx:playerLoaded', function(xPlayer)
-        playerData.job = xPlayer.job
-    end)
-    RegisterNetEvent('esx:setJob', function(job)
-        playerData.job = job
-    end)
-    function Bridge.GetJob() return ESX.GetPlayerData().job end
---]]
-
---[[  PRIKLAD NAPOJENI NA QBCore:
-    QBCore = exports['qb-core']:GetCoreObject()
-    RegisterNetEvent('QBCore:Client:OnJobUpdate', function(job)
-        playerData.job = { name = job.name, grade = job.grade.level }
-    end)
---]]
+-- Znovu-nacteni jobu pri FW udalostech (klient zustava agnosticky) ----
+RegisterNetEvent('esx:playerLoaded',            function() refreshJob() end)
+RegisterNetEvent('esx:setJob',                  function() refreshJob() end)
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded',function() refreshJob() end)
+RegisterNetEvent('QBCore:Client:OnJobUpdate',   function() refreshJob() end)
+RegisterNetEvent('qbx_core:client:playerLoaded',function() refreshJob() end)
+RegisterNetEvent('ox:playerLoaded',             function() refreshJob() end)
+RegisterNetEvent('ox:setGroup',                 function() refreshJob() end)
+RegisterNetEvent('ox:setActiveGroup',           function() refreshJob() end)
 
 -----------------------------------------------------------------------
--- SERVER CALLBACK helper (pres ox_lib)
+-- SERVER CALLBACK helper (ox_lib)
 -----------------------------------------------------------------------
 function Bridge.Callback(name, ...)
     return lib.callback.await(name, false, ...)
 end
 
 -----------------------------------------------------------------------
--- PROGRESSBAR (vyroba jidla apod.)
+-- PROGRESSBAR
 -----------------------------------------------------------------------
 function Bridge.Progress(data)
-    -- data: { label, duration, anim, prop, canCancel }
     if lib and lib.progressBar then
         return lib.progressBar({
-            duration    = data.duration,
-            label       = data.label,
+            duration     = data.duration,
+            label        = data.label,
             useWhileDead = false,
-            canCancel   = data.canCancel ~= false,
-            disable     = { car = true, move = true, combat = true },
-            anim        = data.anim,
-            prop        = data.prop,
+            canCancel    = data.canCancel ~= false,
+            disable      = { car = true, move = true, combat = true },
+            anim         = data.anim,
+            prop         = data.prop,
         })
     else
         Wait(data.duration)

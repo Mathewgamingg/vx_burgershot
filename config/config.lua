@@ -1,6 +1,25 @@
 Config = {}
 
 -----------------------------------------------------------------------
+--  FRAMEWORK
+--  'auto' = skript si sam detekuje co bezi (ESX / QBCore / Qbox / ox_core).
+--  Muzes vynutit rucne: 'esx' | 'qb' | 'qbx' | 'ox' | 'standalone'
+-----------------------------------------------------------------------
+Config.Framework = 'auto'
+
+-- Inventar: 'auto' = pokud bezi ox_inventory pouzije ho, jinak nativni FW inventar.
+-- Muzes vynutit: 'ox' | 'native'
+Config.Inventory = 'auto'
+
+-- Ucet firmy (society) - napojeni dle frameworku:
+--   ESX  -> esx_addonaccount 'society_<name>'
+--   QB   -> qb-banking / qb-management ucet '<name>'
+--   Qbox -> qb-banking / Renewed-Banking ucet '<name>'
+--   ox   -> ox_banking ucet skupiny '<name>'
+-- Kdyz dany banking neni k dispozici, pouzije se interni fallback (nepersistentni).
+Config.SocietyName = 'burgershot'
+
+-----------------------------------------------------------------------
 --  ZAKLADNI NASTAVENI
 -----------------------------------------------------------------------
 
@@ -33,6 +52,10 @@ Config.Interaction = {
     -- Klavesa pro text3d / textui interakci
     key      = 38,          -- 38 = E  (viz https://docs.fivem.net/docs/game-references/controls/)
     keyLabel = 'E',
+
+    -- Pozice vlastniho (custom) textUI panelu:
+    -- 'right-center' | 'left-center' | 'top-center' | 'bottom-center'
+    textuiPosition = 'right-center',
 }
 
 -----------------------------------------------------------------------
@@ -44,7 +67,7 @@ Config.Register = {
     defaultPayment = 'cash',
 
     maxBillAmount  = 5000,   -- max castka na jednu uctenku
-    societyAccount = 'burgershot', -- kam padnou penize (napoji se pres bridge)
+    societyAccount = Config.SocietyName, -- kam padnou penize (napoji se pres bridge)
 
     -- Kolik % z uctenky jde firme (zbytek muze byt "spropitne" hraci - reseno v serveru)
     societyCut     = 1.0,    -- 1.0 = 100% firme

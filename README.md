@@ -2,10 +2,14 @@
 
 Standalone (bridge-ready) job skript pro restauraci **Burger Shot** do FiveM.
 
-Skript je napsaný tak, aby fungoval **sám o sobě** (bez frameworku) a zároveň
-byl připravený na napojení tvého vlastního **bridge** – veškerá integrace
-frameworku (ESX / QBCore / Qbox / vlastní) je jen ve dvou souborech:
-`bridge/client.lua` a `bridge/server.lua`. Zbytek skriptu se jich nedotýká.
+Skript má **vestavěný multi-framework bridge s auto-detekcí** pro
+**ESX, QBCore, Qbox i ox_core** (+ automatická detekce `ox_inventory`).
+Funguje i **standalone** (bez frameworku) na testování. Veškerá integrace
+frameworku je jen ve dvou souborech: `bridge/client.lua` a `bridge/server.lua`.
+Zbytek skriptu se jich nedotýká.
+
+TextUI je **vlastní (custom)** přes NUI – klávesa/písmeno + popisek, které se
+objeví jen když se přiblížíš. Není použité ox_lib textUI.
 
 ---
 
@@ -16,7 +20,7 @@ frameworku (ESX / QBCore / Qbox / vlastní) je jen ve dvou souborech:
 | **Pokladna / účtenky** | Zaměstnanec zadá částku → nejbližšímu hráči přijde účtenka → zaplatí (cash/bank). Peníze jdou na firemní účet + spropitné prodejci. |
 | **Více crafting stanic** | Gril, fritéza, příprava, balení – každá má vlastní recepty. Menu ukazuje **obrázek jídla při najetí** (ox_lib context menu). |
 | **Čepování pití** | Target/3D text/textUI na nápojový automat → menu s nápoji. |
-| **3 způsoby interakce** | Každý bod si v configu vybere: **target** (ox_target), **3D text** nad bodem, **textUI** panel. Text/panel se ukáže **jen když se přiblížíš** a otevřeš klávesou (výchozí `E`). |
+| **3 způsoby interakce** | Každý bod si v configu vybere: **target** (ox_target), **3D text** nad bodem, **custom textUI** (vlastní NUI panel s klávesou/písmenem). Text/panel se ukáže **jen když se přiblížíš** a otevřeš klávesou (výchozí `E`). |
 | **Garáž** | Vytáhnutí firemního vozidla + uložení. Auto slouží k dojezdu pro suroviny. |
 | **Dodavatel surovin (NPC)** | Dojezd autem k NPC na sever mapy, nákup surovin za peníze. |
 | **NPC objednávky** | Když je online málo zaměstnanců, hráč si vezme objednávku pro NPC zákazníka, vyrobí jídlo, předá NPC a dostane odměnu. |
@@ -36,36 +40,52 @@ frameworku (ESX / QBCore / Qbox / vlastní) je jen ve dvou souborech:
 3. Restart serveru.
 
 ### Závislosti
-- **ox_lib** – *povinné* (menu s obrázky, textUI, notifikace, progressbar, callbacky).
+- **ox_lib** – *povinné* (menu s obrázky, notifikace, progressbar, callbacky).
 - **ox_target** – *volitelné*. Když ho nechceš, nastav v `config/config.lua`:
   ```lua
   Config.Interaction.target = false
   ```
   a používej `text3d` / `textui`.
-
-> Skript **nevyžaduje žádný framework**. Pro reálné peníze a inventář ho ale
-> napojíš na svůj bridge – viz níže.
+- **Framework** – ESX / QBCore / Qbox / ox_core (detekuje se automaticky). Bez FW jede standalone.
 
 ---
 
-## 🔌 Napojení na bridge / framework
+## 🔌 Framework (ESX / QBCore / Qbox / ox_core)
 
-Vše je v `bridge/client.lua` a `bridge/server.lua`. Uvnitř funkcí jsou už
-připravené příklady pro ESX i QBCore (zakomentované). Stačí odkomentovat /
-přepsat vnitřek těchto funkcí:
+Framework se **detekuje sám**. Nemusíš nic přepisovat – bridge už umí všechny čtyři.
+V `config/config.lua` můžeš detekci vynutit:
 
-**Server (`bridge/server.lua`)**
-- `Bridge.GetJob(src)` – vrátí job hráče `{ name, grade }`
-- `Bridge.AddMoney / RemoveMoney(src, account, amount)`
-- `Bridge.AddSociety / GetSociety(account, amount)` – firemní účet
-- `Bridge.AddItem / RemoveItem / GetItemCount(src, item, amount)` – inventář (např. `ox_inventory`)
+```lua
+Config.Framework = 'auto'   -- 'esx' | 'qb' | 'qbx' | 'ox' | 'standalone'
+Config.Inventory = 'auto'   -- 'ox' (ox_inventory) | 'native' (FW inventář)
+Config.SocietyName = 'burgershot'  -- účet firmy (viz níže)
+```
 
-**Client (`bridge/client.lua`)**
-- `Bridge.GetJob()` / `Bridge.HasJob()` – job hráče
-- `Bridge.Notify(msg, type)` – notifikace
+Co bridge řeší za tebe (soubor `bridge/server.lua`):
+- **Job** – ESX `xPlayer.job`, QB/Qbox `PlayerData.job`, ox_core `group`.
+- **Peníze** – `cash`/`bank` (u ESX se `cash` mapuje na `money`), přes nativní FW funkce.
+- **Inventář** – `ox_inventory` pokud běží, jinak nativní FW inventář.
+- **Society (účet firmy)**:
+  - ESX → `esx_addonaccount` účet `society_burgershot`
+  - QB/Qbox → `qb-banking` / `Renewed-Banking` / `qb-management`
+  - ox → `ox_banking`
+  - když daný banking chybí → interní fallback (nepersistentní).
 
-> ⚠️ Ve **standalone** režimu jsou peníze a inventář jen simulované (na testování).
-> Nejsou persistentní! Po napojení bridge se použije tvůj skutečný FW.
+> V konzoli po startu uvidíš: `[vx_burgershot] Framework: <fw> | ox_inventory: <bool>`.
+
+### Předměty (items)
+Nezapomeň mít předměty registrované ve svém inventáři/DB (suroviny i výsledky):
+`raw_patty, bun, lettuce, tomato, cheese, cup_empty, soda_syrup, fries_raw,
+cooked_patty, burger, cheeseburger, fries, onion_rings, salad, soda, cola,
+water, menu_combo`. U ESX/QB je přidej do items DB, u ox_inventory do `data/items.lua`.
+
+> ⚠️ Ve **standalone** režimu (bez FW) jsou peníze a inventář jen simulované na
+> testování – nejsou persistentní.
+
+### Vlastní / jiný bridge
+Chceš úplně vlastní bridge? Přepiš jen vnitřky funkcí v `bridge/server.lua` a
+`bridge/client.lua` (`Bridge.GetJob`, `Bridge.AddMoney`, `Bridge.AddItem`, …).
+Zbytek skriptu volá jen tyto funkce.
 
 ---
 
@@ -128,7 +148,8 @@ vx_burgershot/
 │   └── server.lua        # <- napojení frameworku (server)
 ├── client/
 │   ├── utils.lua
-│   ├── interactions.lua  # 3 metody interakce (target/3Dtext/textUI)
+│   ├── textui.lua        # vlastni (custom) NUI textUI
+│   ├── interactions.lua  # 3 metody interakce (target/3Dtext/custom textUI)
 │   ├── crafting.lua
 │   ├── drinks.lua
 │   ├── register.lua      # pokladna/účtenky
@@ -140,6 +161,10 @@ vx_burgershot/
 │   ├── register.lua
 │   ├── npc_orders.lua
 │   └── main.lua
-├── html/images/          # placeholder obrázky jídel (nahraď vlastními)
+├── html/
+│   ├── ui.html           # custom textUI
+│   ├── style.css
+│   ├── script.js
+│   └── images/           # placeholder obrázky jídel (nahraď vlastními)
 └── locales/cs.json
 ```

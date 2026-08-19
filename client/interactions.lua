@@ -78,7 +78,7 @@ CreateThread(function()
         if #proximityPoints > 0 then
             local ped    = PlayerPedId()
             local pcoords = GetEntityCoords(ped)
-            local nearestUI, nearestUILabel, nearestUIDist = nil, nil, drawDist
+            local nearestUI, nearestUIDist = nil, drawDist
             local anyClose = false
 
             for _, p in ipairs(proximityPoints) do
@@ -97,9 +97,8 @@ CreateThread(function()
 
                     -- vyber nejblizsi textui bod
                     if p.textui and canUse and dist < nearestUIDist then
-                        nearestUIDist  = dist
-                        nearestUI      = p
-                        nearestUILabel = ('[%s]  %s'):format(p.key, p.label)
+                        nearestUIDist = dist
+                        nearestUI     = p
                     end
 
                     -- interakce klavesou (pro text3d i textui)
@@ -111,17 +110,15 @@ CreateThread(function()
                 end
             end
 
-            -- zobraz/skryj textUI panel (jen jeden - nejblizsi)
+            -- zobraz/skryj vlastni (custom) textUI panel - jen jeden, nejblizsi
             if nearestUI then
                 if currentTextUI ~= nearestUI then
                     currentTextUI = nearestUI
-                    if lib and lib.showTextUI then
-                        lib.showTextUI(nearestUILabel, { position = 'right-center' })
-                    end
+                    TextUI.Show(nearestUI.label, nearestUI.key)
                 end
             elseif currentTextUI then
                 currentTextUI = nil
-                if lib and lib.hideTextUI then lib.hideTextUI() end
+                TextUI.Hide()
             end
 
             sleep = anyClose and 0 or 400

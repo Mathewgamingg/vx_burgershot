@@ -132,6 +132,27 @@ end)
 --   recipes = seznam receptu (viz recipes.lua)
 --   onCraft(recipe) = callback po vyberu
 -----------------------------------------------------------------------
+-- Obrazek itemu: bud z ox_inventory (web/images/<item>.png) nebo z html/images.
+--   itemName  = nazev predmetu (klic obrazku v ox_inventory)
+--   localFile = nazev souboru v html/images (nepovinne)
+function Interactions.ItemImage(itemName, localFile)
+    local cfg      = Config.Images or {}
+    local oxImg    = ('nui://%s/web/images/%s.png'):format(cfg.oxResource or 'ox_inventory', itemName)
+    local localImg = localFile and ('nui://vx_burgershot/html/images/%s'):format(localFile) or nil
+
+    if (cfg.source or 'local') == 'ox_inventory' then
+        return oxImg
+    end
+    if localImg then return localImg end
+    if cfg.fallbackToLocal then return oxImg end
+    return nil
+end
+
+-- Resolver obrazku pro recept (pouziva vysledny item + pripadny recipe.image)
+local function resolveImage(recipe)
+    return Interactions.ItemImage(recipe.result, recipe.image)
+end
+
 function Interactions.OpenRecipeMenu(title, recipes, onCraft)
     local options = {}
     for i, r in ipairs(recipes) do
@@ -143,7 +164,7 @@ function Interactions.OpenRecipeMenu(title, recipes, onCraft)
         options[#options + 1] = {
             title       = r.label,
             description = ('Potreba: %s'):format(#reqLines > 0 and table.concat(reqLines, ', ') or 'nic'),
-            image       = r.image and ('nui://vx_burgershot/html/images/%s'):format(r.image) or nil,
+            image       = resolveImage(r),
             icon        = 'fa-solid fa-utensils',
             onSelect    = function() onCraft(r) end,
         }

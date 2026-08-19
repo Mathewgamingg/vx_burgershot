@@ -107,8 +107,19 @@ interact = { 'target', 'textui' },  -- klidně víc naráz
 Globálně jednotlivé metody zapínáš/vypínáš v `Config.Interaction`.
 
 ### Obrázky jídel
-V `html/images/` jsou **placeholder PNG** (barevné čtverce). Nahraď je vlastními
-obrázky (stejný název, např. `burger.png`) pro pěkný náhled v menu.
+Výchozí nastavení **tahá obrázky přímo z `ox_inventory`** (jeho `web/images/<item>.png`),
+takže se použijí ty samé obrázky, co už máš u předmětů v inventáři – nemusíš nic kopírovat.
+
+```lua
+Config.Images = {
+    source     = 'ox_inventory', -- 'ox_inventory' | 'local'
+    oxResource = 'ox_inventory', -- kdyby sis fork přejmenoval
+    fallbackToLocal = true,
+}
+```
+
+- `source = 'ox_inventory'` → obrázek = `nui://ox_inventory/web/images/<item>.png` (název podle výsledného itemu).
+- `source = 'local'` → použijí se obrázky z `html/images/` (pole `image` u receptu). V `html/images/` jsou přiložené **placeholder PNG**, nahraď je vlastními.
 
 ---
 

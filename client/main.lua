@@ -25,6 +25,7 @@ local function buySupplies()
         options[#options + 1] = {
             title       = item.label,
             description = ('Cena: $%s / ks'):format(item.price),
+            image       = Interactions.ItemImage(item.name),
             icon        = 'fa-solid fa-box',
             onSelect = function()
                 local input = lib.inputDialog(item.label, {

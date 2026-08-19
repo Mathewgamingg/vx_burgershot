@@ -11,6 +11,17 @@ Config.Framework = 'auto'
 -- Muzes vynutit: 'ox' | 'native'
 Config.Inventory = 'auto'
 
+-- Obrazky v craft/drink menu:
+--   source = 'ox_inventory' -> tahne obrazky primo z ox_inventory
+--            (nui://<resource>/web/images/<item>.png, nazev = vysledny item)
+--   source = 'local'        -> pouzije obrazky z html/images/ (recipe.image)
+-- Kdyz obrazek v ox_inventory chybi, muzes zapnout fallback na lokalni.
+Config.Images = {
+    source     = 'ox_inventory', -- 'ox_inventory' | 'local'
+    oxResource = 'ox_inventory', -- nazev resource s obrazky (napr. vlastni fork)
+    fallbackToLocal = true,      -- kdyz item nema recipe.image, zkusi ox / naopak
+}
+
 -- Ucet firmy (society) - napojeni dle frameworku:
 --   ESX  -> esx_addonaccount 'society_<name>'
 --   QB   -> qb-banking / qb-management ucet '<name>'

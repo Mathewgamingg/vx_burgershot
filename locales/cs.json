@@ -1,0 +1,8 @@
+{
+  "_comment": "Rezerva pro budouci lokalizaci pres ox_lib. Aktualne jsou texty primo v kodu (cesky).",
+  "restaurant": "Burger Shot",
+  "register": "Pokladna",
+  "garage": "Garaz",
+  "supplier": "Dodavatel surovin",
+  "npc_orders": "Objednavky (NPC)"
+}
